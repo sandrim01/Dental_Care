@@ -3,9 +3,8 @@ import logging
 from flask import Flask
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
-from flask_sqlalchemy import SQLAlchemy
 from werkzeug.middleware.proxy_fix import ProxyFix
-from werkzeug.security import generate_password_hash
+from database import db
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -24,7 +23,7 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 }
 
 # Initialize SQLAlchemy
-db = SQLAlchemy(app)
+db.init_app(app)
 
 # Configure CSRF protection
 csrf = CSRFProtect(app)
@@ -53,40 +52,6 @@ app.register_blueprint(main_bp)
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(patient_bp, url_prefix='/patient')
 app.register_blueprint(admin_bp, url_prefix='/admin')
-
-# Create tables and default data
-with app.app_context():
-    # Create all tables
-    db.create_all()
-    
-    # Create default admin user if none exists
-    admin_user = User.query.filter_by(email='admin@clinic.com').first()
-    if not admin_user:
-        admin_user = User(
-            name='Administrator',
-            email='admin@clinic.com',
-            role='admin'
-        )
-        admin_user.set_password('admin123')
-        db.session.add(admin_user)
-        
-        # Create sample professionals
-        dentist1 = Professional(
-            name='Dr. Maria Silva',
-            cro='12345-SP',
-            specialty='Ortodontia'
-        )
-        db.session.add(dentist1)
-        
-        dentist2 = Professional(
-            name='Dr. João Santos',
-            cro='67890-SP',
-            specialty='Implantodontia'
-        )
-        db.session.add(dentist2)
-        
-        # Commit all changes
-        db.session.commit()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
