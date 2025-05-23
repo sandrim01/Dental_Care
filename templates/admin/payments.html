@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Pagamentos - Clínica Odontológica{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1>
+                        <i class="fas fa-credit-card text-primary-custom me-2"></i>
+                        Gerenciar Pagamentos
+                    </h1>
+                    <p class="text-muted">Controle financeiro e cobrança de pacientes</p>
+                </div>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPaymentModal">
+                    <i class="fas fa-plus me-2"></i>Novo Pagamento
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <div class="stat-number">R$ {{ "%.0f"|format(payments|selectattr('status', 'equalto', 'paid')|map(attribute='amount')|sum) }}</div>
+                    <div class="stat-label">Receita Total</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <div class="stat-number">R$ {{ "%.0f"|format(payments|selectattr('status', 'equalto', 'pending')|map(attribute='amount')|sum) }}</div>
+                    <div class="stat-label">Pendente</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body text-center">
+                    <div class="stat-number">R$ {{ "%.0f"|format(payments|selectattr('status', 'equalto', 'overdue')|map(attribute='amount')|sum) }}</div>
+                    <div class="stat-label">Em Atraso</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <div class="stat-number">{{ payments|length }}</div>
+                    <div class="stat-label">Total de Registros</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filter and Search -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" class="form-control" placeholder="Buscar pagamentos..." data-search="tbody tr">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <select class="form-select" onchange="filterByStatus(this.value)">
+                <option value="">Todos os status</option>
+                <option value="pending">Pendentes</option>
+                <option value="paid">Pagos</option>
+                <option value="overdue">Em Atraso</option>
+            </select>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <span class="text-muted">Total: {{ payments|length }} registros</span>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header">
+                    <h5 class="card-title">Lista de Pagamentos</h5>
+                </div>
+                <div class="card-body">
+                    {% if payments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Paciente</th>
+                                        <th>Descrição</th>
+                                        <th>Valor</th>
+                                        <th>Vencimento</th>
+                                        <th>Status</th>
+                                        <th>Data de Pagamento</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payment in payments %}
+                                    <tr data-status="{{ payment.status }}">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary-custom text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px; font-size: 0.8rem;">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold">{{ payment.patient.name }}</div>
+                                                    <small class="text-muted">{{ payment.patient.email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {{ payment.description or 'Pagamento' }}
+                                            <br><small class="text-muted">ID: {{ payment.id }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="fw-bold">R$ {{ "%.2f"|format(payment.amount) }}</span>
+                                        </td>
+                                        <td>
+                                            {% if payment.due_date %}
+                                                {{ payment.due_date.strftime('%d/%m/%Y') }}
+                                                {% if payment.status == 'pending' and payment.due_date < moment().date %}
+                                                    <br><small class="text-danger">Em atraso</small>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge status-badge">{{ payment.status }}</span>
+                                        </td>
+                                        <td>
+                                            {% if payment.paid_date %}
+                                                {{ payment.paid_date.strftime('%d/%m/%Y') }}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                {% if payment.status != 'paid' %}
+                                                <form method="POST" action="{{ url_for('admin.mark_payment_paid', payment_id=payment.id) }}" class="d-inline">
+                                                    <button type="submit" class="btn btn-sm btn-outline-success"
+                                                            data-bs-toggle="tooltip" title="Marcar como Pago">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </form>
+                                                {% endif %}
+                                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                                        onclick="editPayment({{ payment.id }})"
+                                                        data-bs-toggle="tooltip" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-info"
+                                                        onclick="generateReceipt({{ payment.id }})"
+                                                        data-bs-toggle="tooltip" title="Gerar Recibo">
+                                                    <i class="fas fa-receipt"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                                        onclick="deletePayment({{ payment.id }})"
+                                                        data-bs-toggle="tooltip" title="Excluir">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-credit-card"></i>
+                            <h3>Nenhum pagamento registrado</h3>
+                            <p>Comece registrando o primeiro pagamento.</p>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPaymentModal">
+                                <i class="fas fa-plus me-2"></i>Registrar Primeiro Pagamento
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Payment Modal -->
+<div class="modal fade" id="addPaymentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus text-primary-custom me-2"></i>
+                    Novo Pagamento
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST">
+                <div class="modal-body">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.patient_id.label(class="form-label") }}
+                        {{ form.patient_id(class="form-select" + (" is-invalid" if form.patient_id.errors else "")) }}
+                        {% if form.patient_id.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.patient_id.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            {{ form.amount.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else ""), placeholder="0,00", step="0.01") }}
+                                {% if form.amount.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.amount.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.status.label(class="form-label") }}
+                            {{ form.status(class="form-select" + (" is-invalid" if form.status.errors else "")) }}
+                            {% if form.status.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.status.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 mt-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), placeholder="Ex: Consulta ortodôntica - Manutenção") }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.due_date.label(class="form-label") }}
+                        {{ form.due_date(class="form-control" + (" is-invalid" if form.due_date.errors else "")) }}
+                        {% if form.due_date.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.due_date.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Data limite para pagamento (opcional)</div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Se marcar como "Pago", o pagamento será considerado quitado automaticamente.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Registrar Pagamento
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterByStatus(status) {
+    const rows = document.querySelectorAll('tbody tr[data-status]');
+    rows.forEach(row => {
+        if (status === '' || row.getAttribute('data-status') === status) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+function editPayment(paymentId) {
+    alert('Funcionalidade de edição em desenvolvimento.');
+}
+
+function generateReceipt(paymentId) {
+    alert('Funcionalidade de geração de recibo em desenvolvimento.');
+}
+
+function deletePayment(paymentId) {
+    if (confirm('Tem certeza que deseja excluir este pagamento?')) {
+        // In a real implementation, this would make a DELETE request
+        alert('Funcionalidade em desenvolvimento.');
+    }
+}
+</script>
+{% endblock %}

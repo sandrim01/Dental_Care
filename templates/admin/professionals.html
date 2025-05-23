@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Profissionais - Clínica Odontológica{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1>
+                        <i class="fas fa-user-md text-primary-custom me-2"></i>
+                        Gerenciar Profissionais
+                    </h1>
+                    <p class="text-muted">Gerencie dentistas e especialistas da clínica</p>
+                </div>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProfessionalModal">
+                    <i class="fas fa-user-plus me-2"></i>Adicionar Profissional
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search and Filter -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" class="form-control" placeholder="Buscar profissionais..." data-search="tbody tr">
+            </div>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <span class="text-muted">Total: {{ professionals|length }} profissionais</span>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header">
+                    <h5 class="card-title">Lista de Profissionais</h5>
+                </div>
+                <div class="card-body">
+                    {% if professionals %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>CRO</th>
+                                        <th>Especialidade</th>
+                                        <th>Contato</th>
+                                        <th>Data de Cadastro</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for professional in professionals %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary-custom text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                                                    <i class="fas fa-user-md"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold">{{ professional.name }}</div>
+                                                    <small class="text-muted">ID: {{ professional.id }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ professional.cro }}</td>
+                                        <td>
+                                            <span class="badge bg-info">{{ professional.specialty }}</span>
+                                        </td>
+                                        <td>
+                                            {% if professional.phone %}
+                                                <div><i class="fas fa-phone me-1"></i>{{ professional.phone }}</div>
+                                            {% endif %}
+                                            {% if professional.email %}
+                                                <div><i class="fas fa-envelope me-1"></i>{{ professional.email }}</div>
+                                            {% endif %}
+                                            {% if not professional.phone and not professional.email %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ professional.created_at.strftime('%d/%m/%Y') }}</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                                        onclick="editProfessional({{ professional.id }})"
+                                                        data-bs-toggle="tooltip" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <form method="POST" action="{{ url_for('admin.delete_professional', professional_id=professional.id) }}" class="d-inline">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                            data-confirm-delete="Tem certeza que deseja excluir este profissional?"
+                                                            data-bs-toggle="tooltip" title="Excluir">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-user-md"></i>
+                            <h3>Nenhum profissional cadastrado</h3>
+                            <p>Adicione dentistas e especialistas à sua equipe.</p>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProfessionalModal">
+                                <i class="fas fa-user-plus me-2"></i>Adicionar Primeiro Profissional
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Professional Modal -->
+<div class="modal fade" id="addProfessionalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-plus text-primary-custom me-2"></i>
+                    Adicionar Profissional
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST">
+                <div class="modal-body">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label") }}
+                        {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            {{ form.cro.label(class="form-label") }}
+                            {{ form.cro(class="form-control" + (" is-invalid" if form.cro.errors else ""), placeholder="12345-SP") }}
+                            {% if form.cro.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.cro.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.specialty.label(class="form-label") }}
+                            {{ form.specialty(class="form-control" + (" is-invalid" if form.specialty.errors else ""), placeholder="Ortodontia") }}
+                            {% if form.specialty.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.specialty.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            {{ form.phone.label(class="form-label") }}
+                            {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else ""), placeholder="(11) 99999-9999") }}
+                            {% if form.phone.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.phone.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.email.label(class="form-label") }}
+                            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="dentista@email.com") }}
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.email.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        O número do CRO deve ser único para cada profissional.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Salvar Profissional
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function editProfessional(professionalId) {
+    // In a real implementation, this would load the professional data for editing
+    alert('Funcionalidade de edição em desenvolvimento. Use o botão de excluir e crie um novo registro.');
+}
+</script>
+{% endblock %}

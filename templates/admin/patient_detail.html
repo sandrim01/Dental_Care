@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}{{ patient.name }} - Detalhes do Paciente{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{{ url_for('admin.patients') }}" class="btn btn-outline-secondary me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div class="flex-grow-1">
+                    <h1>
+                        <i class="fas fa-user text-primary-custom me-2"></i>
+                        {{ patient.name }}
+                    </h1>
+                    <p class="text-muted mb-0">
+                        {{ patient.email }} | 
+                        Paciente desde {{ patient.created_at.strftime('%d/%m/%Y') }}
+                    </p>
+                </div>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-primary" onclick="alert('Funcionalidade em desenvolvimento')">
+                        <i class="fas fa-calendar-plus me-2"></i>Nova Consulta
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" onclick="alert('Funcionalidade em desenvolvimento')">
+                        <i class="fas fa-edit me-2"></i>Editar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Patient Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <div class="stat-number">{{ appointments|length }}</div>
+                    <div class="stat-label">Total de Consultas</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <div class="stat-number">{{ treatment_plans|length }}</div>
+                    <div class="stat-label">Planos de Tratamento</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <div class="stat-number">{{ payments|selectattr('status', 'equalto', 'pending')|list|length }}</div>
+                    <div class="stat-label">Pagamentos Pendentes</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <div class="stat-number">R$ {{ "%.0f"|format(payments|selectattr('status', 'equalto', 'paid')|map(attribute='amount')|sum) }}</div>
+                    <div class="stat-label">Total Pago</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <!-- Patient Information -->
+        <div class="col-lg-4">
+            <div class="card dashboard-card">
+                <div class="card-header">
+                    <h5 class="card-title">Informações Pessoais</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="bg-primary-custom text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                            <i class="fas fa-user fa-2x"></i>
+                        </div>
+                    </div>
+                    
+                    <table class="table table-borderless">
+                        <tr>
+                            <td><strong>Nome:</strong></td>
+                            <td>{{ patient.name }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Email:</strong></td>
+                            <td>{{ patient.email }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Telefone:</strong></td>
+                            <td>{{ patient.phone or '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Endereço:</strong></td>
+                            <td>{{ patient.address or '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Data de Nasc.:</strong></td>
+                            <td>{{ patient.birth_date.strftime('%d/%m/%Y') if patient.birth_date else '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cadastro:</strong></td>
+                            <td>{{ patient.created_at.strftime('%d/%m/%Y') }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Appointments -->
+        <div class="col-lg-8">
+            <div class="card dashboard-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title">Histórico de Consultas</h5>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="alert('Funcionalidade em desenvolvimento')">
+                        <i class="fas fa-calendar-plus me-1"></i>Nova
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if appointments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Hora</th>
+                                        <th>Profissional</th>
+                                        <th>Status</th>
+                                        <th>Observações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for appointment in appointments[:10] %}
+                                    <tr>
+                                        <td>{{ appointment.date.strftime('%d/%m/%Y') }}</td>
+                                        <td>{{ appointment.time.strftime('%H:%M') }}</td>
+                                        <td>{{ appointment.professional.name }}</td>
+                                        <td>
+                                            <span class="badge status-badge">{{ appointment.status }}</span>
+                                        </td>
+                                        <td>
+                                            {% if appointment.notes %}
+                                                {{ appointment.notes[:30] }}{% if appointment.notes|length > 30 %}...{% endif %}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% if appointments|length > 10 %}
+                        <div class="text-center">
+                            <small class="text-muted">Mostrando últimas 10 consultas de {{ appointments|length }}</small>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-calendar-alt"></i>
+                            <h3>Nenhuma consulta</h3>
+                            <p>Este paciente ainda não possui consultas agendadas.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Treatment Plans and Payments -->
+    <div class="row g-4 mt-2">
+        <!-- Treatment Plans -->
+        <div class="col-lg-6">
+            <div class="card dashboard-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title">Planos de Tratamento</h5>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="alert('Funcionalidade em desenvolvimento')">
+                        <i class="fas fa-plus me-1"></i>Novo
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if treatment_plans %}
+                        {% for plan in treatment_plans %}
+                        <div class="card border mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="card-title">{{ plan.name }}</h6>
+                                        <p class="card-text text-muted">{{ plan.description[:100] }}{% if plan.description|length > 100 %}...{% endif %}</p>
+                                        <small class="text-muted">
+                                            {{ plan.steps|length }} etapas | 
+                                            {{ plan.steps|selectattr('completed')|list|length }} concluídas
+                                        </small>
+                                    </div>
+                                    <span class="badge status-badge">{{ plan.status }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-clipboard-list"></i>
+                            <h3>Nenhum plano</h3>
+                            <p>Nenhum plano de tratamento criado.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Payments -->
+        <div class="col-lg-6">
+            <div class="card dashboard-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title">Histórico de Pagamentos</h5>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="alert('Funcionalidade em desenvolvimento')">
+                        <i class="fas fa-plus me-1"></i>Novo
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if payments %}
+                        {% for payment in payments %}
+                        <div class="d-flex justify-content-between align-items-center mb-3 p-3 border rounded">
+                            <div>
+                                <div class="fw-bold">{{ payment.description or 'Pagamento' }}</div>
+                                <small class="text-muted">
+                                    {% if payment.due_date %}
+                                        Vencimento: {{ payment.due_date.strftime('%d/%m/%Y') }}
+                                    {% endif %}
+                                    {% if payment.paid_date %}
+                                        | Pago em: {{ payment.paid_date.strftime('%d/%m/%Y') }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold">R$ {{ "%.2f"|format(payment.amount) }}</div>
+                                <span class="badge status-badge">{{ payment.status }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-credit-card"></i>
+                            <h3>Nenhum pagamento</h3>
+                            <p>Nenhum pagamento registrado.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

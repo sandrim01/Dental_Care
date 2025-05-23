@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Minhas Consultas - Clínica Odontológica{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="d-flex align-items-center">
+                    <a href="{{ url_for('patient.dashboard') }}" class="btn btn-outline-secondary me-3">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <h1>
+                        <i class="fas fa-calendar-alt text-primary-custom me-2"></i>
+                        Minhas Consultas
+                    </h1>
+                </div>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#requestModal">
+                    <i class="fas fa-calendar-plus me-2"></i>Solicitar Consulta
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header">
+                    <h5 class="card-title">Histórico de Consultas</h5>
+                </div>
+                <div class="card-body">
+                    {% if appointments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Hora</th>
+                                        <th>Profissional</th>
+                                        <th>Especialidade</th>
+                                        <th>Status</th>
+                                        <th>Observações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for appointment in appointments %}
+                                    <tr>
+                                        <td>{{ appointment.date.strftime('%d/%m/%Y') }}</td>
+                                        <td>{{ appointment.time.strftime('%H:%M') }}</td>
+                                        <td>{{ appointment.professional.name }}</td>
+                                        <td>{{ appointment.professional.specialty }}</td>
+                                        <td>
+                                            <span class="badge status-badge">{{ appointment.status }}</span>
+                                        </td>
+                                        <td>
+                                            {% if appointment.notes %}
+                                                {{ appointment.notes[:50] }}{% if appointment.notes|length > 50 %}...{% endif %}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-calendar-alt"></i>
+                            <h3>Nenhuma consulta encontrada</h3>
+                            <p>Você ainda não possui consultas agendadas.</p>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#requestModal">
+                                <i class="fas fa-calendar-plus me-2"></i>Solicitar Primeira Consulta
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Request Appointment Modal -->
+<div class="modal fade" id="requestModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-calendar-plus text-primary-custom me-2"></i>
+                    Solicitar Consulta
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('patient.request_appointment') }}">
+                <div class="modal-body">
+                    {% if form %}
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.professional_id.label(class="form-label") }}
+                        {{ form.professional_id(class="form-select") }}
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            {{ form.date.label(class="form-label") }}
+                            {{ form.date(class="form-control") }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.time.label(class="form-label") }}
+                            {{ form.time(class="form-control") }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 mt-3">
+                        {{ form.notes.label(class="form-label") }}
+                        {{ form.notes(class="form-control", rows="3", placeholder="Descreva o motivo da consulta ou observações especiais") }}
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Sua solicitação será analisada e você receberá uma confirmação em breve.
+                    </div>
+                    {% else %}
+                    <div class="mb-3">
+                        <label class="form-label">Profissional</label>
+                        <select class="form-select" name="professional_id" required>
+                            <option value="">Selecione um profissional</option>
+                            {% if professionals %}
+                                {% for professional in professionals %}
+                                <option value="{{ professional.id }}">{{ professional.name }} - {{ professional.specialty }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Data</label>
+                            <input type="date" class="form-control" name="date" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Hora</label>
+                            <input type="time" class="form-control" name="time" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 mt-3">
+                        <label class="form-label">Observações</label>
+                        <textarea class="form-control" name="notes" rows="3" placeholder="Descreva o motivo da consulta ou observações especiais"></textarea>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Sua solicitação será analisada e você receberá uma confirmação em breve.
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane me-2"></i>Enviar Solicitação
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Administrativo - Clínica Odontológica{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1>
+                <i class="fas fa-chart-line text-primary-custom me-2"></i>
+                Dashboard Administrativo
+            </h1>
+            <p class="text-muted">Visão geral da clínica</p>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6 col-lg-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <div class="stat-number">{{ stats.total_patients }}</div>
+                    <div class="stat-label">Total de Pacientes</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <div class="stat-number">{{ stats.todays_appointments }}</div>
+                    <div class="stat-label">Consultas Hoje</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <div class="stat-number">{{ stats.pending_payments }}</div>
+                    <div class="stat-label">Pagamentos Pendentes</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card stat-card">
+                <div class="card-body text-center">
+                    <div class="stat-number">R$ {{ "%.0f"|format(stats.total_revenue) }}</div>
+                    <div class="stat-label">Receita Total</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <!-- Recent Appointments -->
+        <div class="col-lg-8">
+            <div class="card dashboard-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title">Consultas Recentes</h5>
+                    <a href="{{ url_for('admin.appointments') }}" class="btn btn-sm btn-outline-primary">
+                        Ver Todas
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_appointments %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Paciente</th>
+                                        <th>Profissional</th>
+                                        <th>Data</th>
+                                        <th>Hora</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for appointment in recent_appointments %}
+                                    <tr>
+                                        <td>{{ appointment.patient.name }}</td>
+                                        <td>{{ appointment.professional.name }}</td>
+                                        <td>{{ appointment.date.strftime('%d/%m/%Y') }}</td>
+                                        <td>{{ appointment.time.strftime('%H:%M') }}</td>
+                                        <td>
+                                            <span class="badge status-badge">{{ appointment.status }}</span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-calendar-alt"></i>
+                            <h3>Nenhuma consulta recente</h3>
+                            <p>Não há consultas registradas no sistema.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="col-lg-4">
+            <div class="card dashboard-card">
+                <div class="card-header">
+                    <h5 class="card-title">Ações Rápidas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('admin.appointments') }}" class="btn btn-primary">
+                            <i class="fas fa-calendar-plus me-2"></i>Nova Consulta
+                        </a>
+                        <a href="{{ url_for('admin.patients') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-user-plus me-2"></i>Novo Paciente
+                        </a>
+                        <a href="{{ url_for('admin.professionals') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-user-md me-2"></i>Gerenciar Profissionais
+                        </a>
+                        <a href="{{ url_for('admin.treatment_plans') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-clipboard-list me-2"></i>Planos de Tratamento
+                        </a>
+                        <a href="{{ url_for('admin.payments') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-credit-card me-2"></i>Gerenciar Pagamentos
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Today's Summary -->
+            <div class="card dashboard-card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title">Resumo de Hoje</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Consultas agendadas:</span>
+                        <strong>{{ stats.todays_appointments }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Total de pacientes:</span>
+                        <strong>{{ stats.total_patients }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Consultas no total:</span>
+                        <strong>{{ stats.total_appointments }}</strong>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <span>Pendências financeiras:</span>
+                        <strong class="text-warning">{{ stats.pending_payments }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

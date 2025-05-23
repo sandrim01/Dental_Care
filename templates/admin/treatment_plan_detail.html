@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}{{ plan.name }} - Clínica Odontológica{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex align-items-center mb-4">
+                <a href="{{ url_for('admin.treatment_plans') }}" class="btn btn-outline-secondary me-3">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div class="flex-grow-1">
+                    <h1>
+                        <i class="fas fa-clipboard-list text-primary-custom me-2"></i>
+                        {{ plan.name }}
+                    </h1>
+                    <p class="text-muted mb-0">
+                        Paciente: <strong>{{ plan.patient.name }}</strong> | 
+                        Status: <span class="badge status-badge">{{ plan.status }}</span>
+                    </p>
+                </div>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStepModal">
+                    <i class="fas fa-plus me-2"></i>Adicionar Etapa
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Plan Information -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header">
+                    <h5 class="card-title">Informações do Plano</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6>Descrição</h6>
+                            <p>{{ plan.description or "Nenhuma descrição fornecida." }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h6>Estatísticas</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Total de etapas:</span>
+                                <strong>{{ plan.steps|length }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Concluídas:</span>
+                                <strong class="text-success">{{ plan.steps|selectattr('completed')|list|length }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Pendentes:</span>
+                                <strong class="text-warning">{{ plan.steps|rejectattr('completed')|list|length }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Criado em:</span>
+                                <strong>{{ plan.created_at.strftime('%d/%m/%Y') }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Treatment Steps -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title">Etapas do Tratamento</h5>
+                    {% if plan.steps %}
+                    <div class="progress" style="width: 200px;">
+                        {% set progress = (plan.steps|selectattr('completed')|list|length / plan.steps|length * 100)|round|int %}
+                        <div class="progress-bar bg-success" style="width: {{ progress }}%">{{ progress }}%</div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if plan.steps %}
+                        <div class="row g-3">
+                            {% for step in plan.steps %}
+                            <div class="col-md-6">
+                                <div class="card border {% if step.completed %}border-success bg-light{% else %}border-secondary{% endif %}">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-start">
+                                            <div class="me-3">
+                                                {% if step.completed %}
+                                                    <i class="fas fa-check-circle text-success fa-lg"></i>
+                                                {% else %}
+                                                    <i class="far fa-circle text-muted fa-lg"></i>
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">{{ step.description }}</h6>
+                                                
+                                                {% if step.expected_date %}
+                                                <small class="text-muted">
+                                                    <i class="fas fa-calendar me-1"></i>
+                                                    Previsto: {{ step.expected_date.strftime('%d/%m/%Y') }}
+                                                </small>
+                                                {% endif %}
+                                                
+                                                {% if step.completed and step.completed_date %}
+                                                <div class="mt-1">
+                                                    <small class="text-success">
+                                                        <i class="fas fa-check me-1"></i>
+                                                        Concluído em {{ step.completed_date.strftime('%d/%m/%Y') }}
+                                                    </small>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                {% if step.notes %}
+                                                <div class="mt-2">
+                                                    <small class="text-muted">{{ step.notes }}</small>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="ms-2">
+                                                <div class="btn-group-vertical" role="group">
+                                                    {% if not step.completed %}
+                                                    <form method="POST" action="{{ url_for('admin.complete_treatment_step', step_id=step.id) }}" class="d-inline">
+                                                        <button type="submit" class="btn btn-sm btn-outline-success"
+                                                                data-bs-toggle="tooltip" title="Marcar como Concluída">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                    </form>
+                                                    {% endif %}
+                                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                                            onclick="editStep({{ step.id }})"
+                                                            data-bs-toggle="tooltip" title="Editar">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                                            onclick="deleteStep({{ step.id }})"
+                                                            data-bs-toggle="tooltip" title="Excluir">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-tasks"></i>
+                            <h3>Nenhuma etapa definida</h3>
+                            <p>Adicione etapas para organizar o tratamento do paciente.</p>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStepModal">
+                                <i class="fas fa-plus me-2"></i>Adicionar Primeira Etapa
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Step Modal -->
+<div class="modal fade" id="addStepModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus text-primary-custom me-2"></i>
+                    Adicionar Etapa
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST">
+                <div class="modal-body">
+                    {{ step_form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ step_form.description.label(class="form-label") }}
+                        {{ step_form.description(class="form-control" + (" is-invalid" if step_form.description.errors else ""), placeholder="Ex: Moldagem para aparelho ortodôntico") }}
+                        {% if step_form.description.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in step_form.description.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ step_form.expected_date.label(class="form-label") }}
+                        {{ step_form.expected_date(class="form-control" + (" is-invalid" if step_form.expected_date.errors else "")) }}
+                        {% if step_form.expected_date.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in step_form.expected_date.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">Data prevista para conclusão da etapa (opcional)</div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        As etapas ajudam a organizar e acompanhar o progresso do tratamento.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Adicionar Etapa
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function editStep(stepId) {
+    alert('Funcionalidade de edição em desenvolvimento.');
+}
+
+function deleteStep(stepId) {
+    if (confirm('Tem certeza que deseja excluir esta etapa?')) {
+        // In a real implementation, this would make a DELETE request
+        alert('Funcionalidade em desenvolvimento.');
+    }
+}
+</script>
+{% endblock %}

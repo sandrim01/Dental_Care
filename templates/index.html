@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Clínica Odontológica - Cuidando do seu sorriso{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <div class="fade-in">
+                    <h1 class="hero-title">Cuidando do seu <span class="text-primary-custom">sorriso</span></h1>
+                    <p class="hero-subtitle">
+                        Tecnologia avançada, profissionais qualificados e atendimento humanizado 
+                        para garantir a sua saúde bucal e bem-estar.
+                    </p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>Agendar Consulta
+                        </a>
+                        <a href="#services" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-info-circle me-2"></i>Nossos Serviços
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="fade-in">
+                    <i class="fas fa-tooth" style="font-size: 15rem; color: rgb(var(--primary) / 0.1);"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Services Section -->
+<section id="services" class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="display-5 fw-bold">Nossos Serviços</h2>
+                <p class="lead text-muted">Oferecemos uma ampla gama de tratamentos odontológicos</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card dashboard-card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-teeth text-primary-custom mb-3" style="font-size: 3rem;"></i>
+                        <h5 class="card-title">Ortodontia</h5>
+                        <p class="card-text">Correção de dentes desalinhados com aparelhos modernos e eficazes.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card dashboard-card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-tooth text-primary-custom mb-3" style="font-size: 3rem;"></i>
+                        <h5 class="card-title">Implantodontia</h5>
+                        <p class="card-text">Reposição de dentes perdidos com implantes de última geração.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card dashboard-card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-smile text-primary-custom mb-3" style="font-size: 3rem;"></i>
+                        <h5 class="card-title">Estética Dental</h5>
+                        <p class="card-text">Clareamento, facetas e outros procedimentos para um sorriso perfeito.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card dashboard-card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-shield-alt text-primary-custom mb-3" style="font-size: 3rem;"></i>
+                        <h5 class="card-title">Prevenção</h5>
+                        <p class="card-text">Limpeza, profilaxia e orientações para manter sua saúde bucal.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card dashboard-card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-tools text-primary-custom mb-3" style="font-size: 3rem;"></i>
+                        <h5 class="card-title">Endodontia</h5>
+                        <p class="card-text">Tratamento de canal com tecnologia avançada e menos dor.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card dashboard-card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-user-friends text-primary-custom mb-3" style="font-size: 3rem;"></i>
+                        <h5 class="card-title">Odontopediatria</h5>
+                        <p class="card-text">Cuidados especiais para a saúde bucal das crianças.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Us Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="display-5 fw-bold">Por que escolher nossa clínica?</h2>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center">
+                    <div class="bg-primary-custom text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-award fa-2x"></i>
+                    </div>
+                    <h5>Profissionais Qualificados</h5>
+                    <p class="text-muted">Equipe especializada com anos de experiência e constante atualização.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center">
+                    <div class="bg-primary-custom text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-microscope fa-2x"></i>
+                    </div>
+                    <h5>Tecnologia Avançada</h5>
+                    <p class="text-muted">Equipamentos de última geração para diagnósticos precisos e tratamentos eficazes.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center">
+                    <div class="bg-primary-custom text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-heart fa-2x"></i>
+                    </div>
+                    <h5>Atendimento Humanizado</h5>
+                    <p class="text-muted">Cuidado personalizado e acolhedor para cada paciente.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center">
+                    <div class="bg-primary-custom text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="fas fa-clock fa-2x"></i>
+                    </div>
+                    <h5>Horários Flexíveis</h5>
+                    <p class="text-muted">Agendamento online e horários que se adequam à sua rotina.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section id="contact" class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="display-5 fw-bold">Entre em Contato</h2>
+                <p class="lead text-muted">Estamos prontos para cuidar do seu sorriso</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card dashboard-card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-map-marker-alt text-primary-custom mb-3" style="font-size: 2rem;"></i>
+                        <h5>Localização</h5>
+                        <p class="text-muted">Rua das Flores, 123<br>Centro - São Paulo/SP</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card dashboard-card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-phone text-primary-custom mb-3" style="font-size: 2rem;"></i>
+                        <h5>Telefone</h5>
+                        <p class="text-muted">(11) 9999-9999<br>WhatsApp disponível</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card dashboard-card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-envelope text-primary-custom mb-3" style="font-size: 2rem;"></i>
+                        <h5>E-mail</h5>
+                        <p class="text-muted">contato@clinica.com<br>Resposta em até 24h</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-5">
+            <div class="col-12 text-center">
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-calendar-plus me-2"></i>Agendar Consulta Online
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

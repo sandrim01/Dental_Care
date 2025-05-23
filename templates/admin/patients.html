@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Pacientes - Clínica Odontológica{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1>
+                        <i class="fas fa-users text-primary-custom me-2"></i>
+                        Gerenciar Pacientes
+                    </h1>
+                    <p class="text-muted">Visualize e gerencie todos os pacientes da clínica</p>
+                </div>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary" target="_blank">
+                    <i class="fas fa-user-plus me-2"></i>Cadastrar Paciente
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search and Filter -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" class="form-control" placeholder="Buscar pacientes..." data-search="tbody tr">
+            </div>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <span class="text-muted">Total: {{ patients|length }} pacientes</span>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-header">
+                    <h5 class="card-title">Lista de Pacientes</h5>
+                </div>
+                <div class="card-body">
+                    {% if patients %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Email</th>
+                                        <th>Telefone</th>
+                                        <th>Data de Cadastro</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for patient in patients %}
+                                    <tr data-href="{{ url_for('admin.patient_detail', patient_id=patient.id) }}">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary-custom text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold">{{ patient.name }}</div>
+                                                    <small class="text-muted">ID: {{ patient.id }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ patient.email }}</td>
+                                        <td>{{ patient.phone or '-' }}</td>
+                                        <td>{{ patient.created_at.strftime('%d/%m/%Y') }}</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{{ url_for('admin.patient_detail', patient_id=patient.id) }}" 
+                                                   class="btn btn-sm btn-outline-primary"
+                                                   data-bs-toggle="tooltip" title="Ver Detalhes">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-info"
+                                                        onclick="event.stopPropagation(); showPatientInfo({{ patient.id }})"
+                                                        data-bs-toggle="tooltip" title="Informações Rápidas">
+                                                    <i class="fas fa-info"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-users"></i>
+                            <h3>Nenhum paciente cadastrado</h3>
+                            <p>Comece cadastrando o primeiro paciente da clínica.</p>
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-primary" target="_blank">
+                                <i class="fas fa-user-plus me-2"></i>Cadastrar Primeiro Paciente
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Patient Info Modal -->
+<div class="modal fade" id="patientInfoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user text-primary-custom me-2"></i>
+                    Informações do Paciente
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="patientInfoContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-primary" onclick="viewPatientDetail()">Ver Detalhes Completos</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPatientId = null;
+
+function showPatientInfo(patientId) {
+    currentPatientId = patientId;
+    
+    // In a real implementation, this would fetch data via AJAX
+    // For now, we'll show a placeholder
+    const content = `
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <p class="mt-2">Carregando informações do paciente...</p>
+        </div>
+    `;
+    
+    document.getElementById('patientInfoContent').innerHTML = content;
+    
+    const modal = new bootstrap.Modal(document.getElementById('patientInfoModal'));
+    modal.show();
+    
+    // Simulate loading delay
+    setTimeout(() => {
+        const detailedContent = `
+            <div class="row">
+                <div class="col-12">
+                    <h6>Informações Básicas</h6>
+                    <p><strong>ID:</strong> ${patientId}</p>
+                    <p><strong>Status:</strong> <span class="badge bg-success">Ativo</span></p>
+                    <hr>
+                    <h6>Resumo</h6>
+                    <p>Para ver informações completas, acesse os detalhes do paciente.</p>
+                </div>
+            </div>
+        `;
+        document.getElementById('patientInfoContent').innerHTML = detailedContent;
+    }, 1000);
+}
+
+function viewPatientDetail() {
+    if (currentPatientId) {
+        window.location.href = `{{ url_for('admin.patient_detail', patient_id=0) }}`.replace('0', currentPatientId);
+    }
+}
+</script>
+{% endblock %}
