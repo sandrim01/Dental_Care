@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from models import User
 from forms import LoginForm, RegisterForm
+from database import db
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -15,10 +16,10 @@ def login():
     
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.get_by_email(form.email.data)
+        user = User.query.filter_by(email=form.email.data).first()
         if user and user.check_password(form.password.data):
             login_user(user)
-            flash('Login successful!', 'success')
+            flash('Login realizado com sucesso!', 'success')
             next_page = request.args.get('next')
             if next_page:
                 return redirect(next_page)
@@ -27,7 +28,7 @@ def login():
             else:
                 return redirect(url_for('patient.dashboard'))
         else:
-            flash('Invalid email or password.', 'error')
+            flash('Email ou senha inválidos.', 'error')
     
     return render_template('auth/login.html', form=form)
 
@@ -39,8 +40,9 @@ def register():
     form = RegisterForm()
     if form.validate_on_submit():
         # Check if email already exists
-        if User.get_by_email(form.email.data):
-            flash('Email already registered. Please use a different email.', 'error')
+        existing_user = User.query.filter_by(email=form.email.data).first()
+        if existing_user:
+            flash('Email já cadastrado. Use um email diferente.', 'error')
             return render_template('auth/register.html', form=form)
         
         # Create new user
@@ -50,10 +52,13 @@ def register():
             role='patient'
         )
         user.set_password(form.password.data)
-        user.phone = form.phone.data
-        user.save()
+        if form.phone.data:
+            user.phone = form.phone.data
         
-        flash('Registration successful! Please log in.', 'success')
+        db.session.add(user)
+        db.session.commit()
+        
+        flash('Cadastro realizado com sucesso! Faça login.', 'success')
         return redirect(url_for('auth.login'))
     
     return render_template('auth/register.html', form=form)
@@ -62,5 +67,5 @@ def register():
 @login_required
 def logout():
     logout_user()
-    flash('You have been logged out.', 'info')
+    flash('Logout realizado com sucesso.', 'info')
     return redirect(url_for('main.index'))
