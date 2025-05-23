@@ -27,8 +27,9 @@ db.init_app(app)
 
 # Configure CSRF protection
 csrf = CSRFProtect(app)
-# Disable CSRF for login route temporarily
+# Disable CSRF for auth routes
 csrf.exempt('auth.login')
+csrf.exempt('auth.register')
 
 # Configure Flask-Login
 login_manager = LoginManager()

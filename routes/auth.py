@@ -40,31 +40,39 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     
-    form = RegisterForm()
-    if form.validate_on_submit():
-        # Check if email already exists
-        existing_user = User.query.filter_by(email=form.email.data).first()
-        if existing_user:
-            flash('Email já cadastrado. Use um email diferente.', 'error')
-            return render_template('auth/register.html', form=form)
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        phone = request.form.get('phone')
         
-        # Create new user
-        user = User(
-            name=form.name.data,
-            email=form.email.data,
-            role='patient'
-        )
-        user.set_password(form.password.data)
-        if form.phone.data:
-            user.phone = form.phone.data
-        
-        db.session.add(user)
-        db.session.commit()
-        
-        flash('Cadastro realizado com sucesso! Faça login.', 'success')
-        return redirect(url_for('auth.login'))
+        if name and email and password:
+            # Check if email already exists
+            existing_user = User.query.filter_by(email=email).first()
+            if existing_user:
+                flash('Email já cadastrado. Use um email diferente.', 'error')
+            else:
+                # Create new user
+                user = User(
+                    name=name,
+                    email=email,
+                    role='patient'
+                )
+                user.set_password(password)
+                if phone:
+                    user.phone = phone
+                
+                db.session.add(user)
+                db.session.commit()
+                
+                flash('Cadastro realizado com sucesso! Faça login.', 'success')
+                return redirect(url_for('auth.login'))
+        else:
+            flash('Por favor, preencha todos os campos obrigatórios.', 'error')
     
-    return render_template('auth/register.html', form=form)
+    form = RegisterForm()
+    
+    return render_template('auth/simple_register.html', form=form)
 
 @auth_bp.route('/logout')
 @login_required
