@@ -1,0 +1,118 @@
+Você é um engenheiro de software sênior full-stack.
+Crie um sistema web completo para uma clínica odontológica, utilizando Python + Flask com PostgreSQL (Railway) como banco de dados.
+O sistema deve ter uma interface moderna, responsiva e clean, utilizando Bootstrap 5 ou Tailwind CSS, e ser compatível com dispositivos móveis e desktop.
+
+🛠️ Tecnologias obrigatórias
+Python 3.x + Flask
+
+Flask-Login para autenticação
+
+SQLAlchemy ou Flask-SQLAlchemy
+
+PostgreSQL (com string de conexão:
+postgresql://postgres:jGOEnSzNyXWkxBdoIQayvcImZlklPSQK@trolley.proxy.rlwy.net:43430/railway)
+
+HTML5 + Jinja2 + CSS (com Bootstrap 5 ou Tailwind CSS)
+
+Flask-WTF (validação de formulários)
+
+Flask-Migrate para migrations
+
+JWT para autenticação de APIs
+
+Docker + .env
+
+🎯 Funcionalidades
+👤 Área do Paciente (site público + painel logado)
+Cadastro e login seguro (com validações)
+
+Visualização e edição do perfil
+
+Histórico de consultas e tratamentos
+
+Solicitação de agendamentos (com calendário e horário disponível)
+
+Upload e visualização de exames (radiografias, PDFs, imagens)
+
+Layout moderno, com ícones, animações leves, responsivo e fluido
+
+🛠️ Área Administrativa (após login como admin)
+Dashboard com KPIs (consultas do dia, pacientes ativos, faturamento)
+
+CRUD de pacientes
+
+CRUD de profissionais (nome, CRO, especialidade)
+
+Agendamento de consultas (com prevenção de conflitos)
+
+Criação de planos de tratamento com etapas (checklist e anexo de arquivos)
+
+Visualização de pagamentos por paciente (com status)
+
+Relatórios exportáveis (CSV / PDF)
+
+Interface baseada em cards e tabelas, com filtros e pesquisa
+
+🧩 Modelo de Dados (ORM)
+User: id, nome, email, senha_hash, role (admin, patient, dentist, reception)
+
+Professional: id, nome, CRO, especialidade
+
+Appointment: id, paciente_id, profissional_id, data, hora, status
+
+TreatmentPlan: id, paciente_id, nome, descrição
+
+TreatmentStep: id, plano_id, descrição, data_prevista, concluído
+
+Payment: id, paciente_id, valor, data, status
+
+FileUpload: id, paciente_id, filename, url, tipo, data
+
+🔐 Autenticação
+Login com Flask-Login + JWT (para API futura)
+
+Restrição de rotas por tipo de usuário
+
+Logout seguro
+
+🌐 Frontend (Jinja2)
+Utilizar layout base com includes (base.html)
+
+Templates separados por tipo de usuário
+
+Animações suaves (Fade, Slide), ícones (FontAwesome ou HeroIcons)
+
+Menus colapsáveis em mobile
+
+Notificações com Toast (ex: sucesso no agendamento)
+
+🚀 Deploy
+Dockerfile pronto para deploy
+
+Script run.sh para desenvolvimento local
+
+Railway com variáveis de ambiente
+
+Seed com dados fictícios
+
+Instruções no README
+
+📦 Extras
+Estrutura de pastas profissional (/app, /templates, /static, /routes, /models)
+
+Validação de formulários e mensagens de erro amigáveis
+
+Código limpo e comentado
+
+Suporte futuro a API REST (rotas públicas e privadas)
+
+📄 Entregáveis
+Código-fonte completo
+
+README com instruções de uso
+
+Screenshots ou protótipos do layout
+
+Scripts de criação de banco
+
+Dockerfile e docker-compose.yml
