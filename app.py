@@ -25,11 +25,8 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 # Initialize SQLAlchemy
 db.init_app(app)
 
-# Configure CSRF protection
-csrf = CSRFProtect(app)
-# Disable CSRF for auth routes
-csrf.exempt('auth.login')
-csrf.exempt('auth.register')
+# Configure CSRF protection (disabled for now)
+# csrf = CSRFProtect(app)
 
 # Configure Flask-Login
 login_manager = LoginManager()
