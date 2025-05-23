@@ -1,38 +1,26 @@
 from datetime import datetime, date
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from app import db
 
-# In-memory storage for MVP
-_users = {}
-_professionals = {}
-_appointments = {}
-_treatment_plans = {}
-_treatment_steps = {}
-_payments = {}
-_file_uploads = {}
-
-# ID counters
-_user_id_counter = 1
-_professional_id_counter = 1
-_appointment_id_counter = 1
-_treatment_plan_id_counter = 1
-_treatment_step_id_counter = 1
-_payment_id_counter = 1
-_file_upload_id_counter = 1
-
-class User(UserMixin):
-    def __init__(self, name, email, role='patient'):
-        global _user_id_counter
-        self.id = _user_id_counter
-        _user_id_counter += 1
-        self.name = name
-        self.email = email
-        self.password_hash = None
-        self.role = role  # admin, patient, dentist, receptionist
-        self.phone = ''
-        self.address = ''
-        self.birth_date = None
-        self.created_at = datetime.now()
+class User(UserMixin, db.Model):
+    __tablename__ = 'users'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256))
+    role = db.Column(db.String(20), default='patient')  # admin, patient, dentist, receptionist
+    phone = db.Column(db.String(20))
+    address = db.Column(db.Text)
+    birth_date = db.Column(db.Date)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    appointments = db.relationship('Appointment', backref='patient', lazy=True)
+    treatment_plans = db.relationship('TreatmentPlan', backref='patient', lazy=True)
+    payments = db.relationship('Payment', backref='patient', lazy=True)
+    file_uploads = db.relationship('FileUpload', backref='patient', lazy=True)
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -40,258 +28,109 @@ class User(UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
     
-    def save(self):
-        _users[self.id] = self
-        return self
-    
-    @staticmethod
-    def get(user_id):
-        return _users.get(user_id)
-    
-    @staticmethod
-    def get_by_email(email):
-        for user in _users.values():
-            if user.email == email:
-                return user
-        return None
-    
-    @staticmethod
-    def get_all():
-        return list(_users.values())
-    
     @staticmethod
     def get_patients():
-        return [user for user in _users.values() if user.role == 'patient']
+        return User.query.filter_by(role='patient').all()
 
-class Professional:
-    def __init__(self, name, cro, specialty):
-        global _professional_id_counter
-        self.id = _professional_id_counter
-        _professional_id_counter += 1
-        self.name = name
-        self.cro = cro
-        self.specialty = specialty
-        self.phone = ''
-        self.email = ''
-        self.created_at = datetime.now()
+class Professional(db.Model):
+    __tablename__ = 'professionals'
     
-    def save(self):
-        _professionals[self.id] = self
-        return self
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    cro = db.Column(db.String(20), nullable=False)
+    specialty = db.Column(db.String(100), nullable=False)
+    phone = db.Column(db.String(20))
+    email = db.Column(db.String(120))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    def delete(self):
-        if self.id in _professionals:
-            del _professionals[self.id]
-    
-    @staticmethod
-    def get(professional_id):
-        return _professionals.get(professional_id)
-    
-    @staticmethod
-    def get_all():
-        return list(_professionals.values())
+    # Relationships
+    appointments = db.relationship('Appointment', backref='professional', lazy=True)
 
-class Appointment:
-    def __init__(self, patient_id, professional_id, date, time):
-        global _appointment_id_counter
-        self.id = _appointment_id_counter
-        _appointment_id_counter += 1
-        self.patient_id = patient_id
-        self.professional_id = professional_id
-        self.date = date
-        self.time = time
-        self.status = 'scheduled'  # scheduled, completed, cancelled
-        self.notes = ''
-        self.created_at = datetime.now()
+class Appointment(db.Model):
+    __tablename__ = 'appointments'
     
-    def save(self):
-        _appointments[self.id] = self
-        return self
-    
-    def delete(self):
-        if self.id in _appointments:
-            del _appointments[self.id]
-    
-    @property
-    def patient(self):
-        return User.get(self.patient_id)
-    
-    @property
-    def professional(self):
-        return Professional.get(self.professional_id)
-    
-    @staticmethod
-    def get(appointment_id):
-        return _appointments.get(appointment_id)
-    
-    @staticmethod
-    def get_all():
-        return list(_appointments.values())
-    
-    @staticmethod
-    def get_by_patient(patient_id):
-        return [apt for apt in _appointments.values() if apt.patient_id == patient_id]
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    professional_id = db.Column(db.Integer, db.ForeignKey('professionals.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    time = db.Column(db.Time, nullable=False)
+    notes = db.Column(db.Text)
+    status = db.Column(db.String(20), default='scheduled')  # scheduled, completed, cancelled
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     @staticmethod
     def get_today():
         today = date.today()
-        return [apt for apt in _appointments.values() if apt.date == today]
-
-class TreatmentPlan:
-    def __init__(self, patient_id, name, description=''):
-        global _treatment_plan_id_counter
-        self.id = _treatment_plan_id_counter
-        _treatment_plan_id_counter += 1
-        self.patient_id = patient_id
-        self.name = name
-        self.description = description
-        self.status = 'active'  # active, completed, cancelled
-        self.created_at = datetime.now()
-    
-    def save(self):
-        _treatment_plans[self.id] = self
-        return self
-    
-    def delete(self):
-        if self.id in _treatment_plans:
-            del _treatment_plans[self.id]
-        # Delete associated steps
-        steps_to_delete = [step_id for step_id, step in _treatment_steps.items() 
-                          if step.plan_id == self.id]
-        for step_id in steps_to_delete:
-            del _treatment_steps[step_id]
-    
-    @property
-    def patient(self):
-        return User.get(self.patient_id)
-    
-    @property
-    def steps(self):
-        return [step for step in _treatment_steps.values() if step.plan_id == self.id]
-    
-    @staticmethod
-    def get(plan_id):
-        return _treatment_plans.get(plan_id)
-    
-    @staticmethod
-    def get_all():
-        return list(_treatment_plans.values())
+        return Appointment.query.filter_by(date=today).all()
     
     @staticmethod
     def get_by_patient(patient_id):
-        return [plan for plan in _treatment_plans.values() if plan.patient_id == patient_id]
+        return Appointment.query.filter_by(patient_id=patient_id).all()
 
-class TreatmentStep:
-    def __init__(self, plan_id, description, expected_date=None):
-        global _treatment_step_id_counter
-        self.id = _treatment_step_id_counter
-        _treatment_step_id_counter += 1
-        self.plan_id = plan_id
-        self.description = description
-        self.expected_date = expected_date
-        self.completed = False
-        self.completed_date = None
-        self.notes = ''
-        self.created_at = datetime.now()
+class TreatmentPlan(db.Model):
+    __tablename__ = 'treatment_plans'
     
-    def save(self):
-        _treatment_steps[self.id] = self
-        return self
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    name = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    def delete(self):
-        if self.id in _treatment_steps:
-            del _treatment_steps[self.id]
+    # Relationships
+    steps = db.relationship('TreatmentStep', backref='plan', lazy=True, cascade='all, delete-orphan')
+    
+    @staticmethod
+    def get_by_patient(patient_id):
+        return TreatmentPlan.query.filter_by(patient_id=patient_id).all()
+
+class TreatmentStep(db.Model):
+    __tablename__ = 'treatment_steps'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    plan_id = db.Column(db.Integer, db.ForeignKey('treatment_plans.id'), nullable=False)
+    description = db.Column(db.String(500), nullable=False)
+    expected_date = db.Column(db.Date)
+    completed = db.Column(db.Boolean, default=False)
+    completed_date = db.Column(db.Date)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def complete(self):
         self.completed = True
-        self.completed_date = datetime.now()
-        self.save()
-    
-    @property
-    def plan(self):
-        return TreatmentPlan.get(self.plan_id)
-    
-    @staticmethod
-    def get(step_id):
-        return _treatment_steps.get(step_id)
+        self.completed_date = date.today()
+        db.session.commit()
     
     @staticmethod
     def get_by_plan(plan_id):
-        return [step for step in _treatment_steps.values() if step.plan_id == plan_id]
+        return TreatmentStep.query.filter_by(plan_id=plan_id).all()
 
-class Payment:
-    def __init__(self, patient_id, amount, description=''):
-        global _payment_id_counter
-        self.id = _payment_id_counter
-        _payment_id_counter += 1
-        self.patient_id = patient_id
-        self.amount = amount
-        self.description = description
-        self.status = 'pending'  # pending, paid, overdue
-        self.due_date = None
-        self.paid_date = None
-        self.created_at = datetime.now()
+class Payment(db.Model):
+    __tablename__ = 'payments'
     
-    def save(self):
-        _payments[self.id] = self
-        return self
-    
-    def delete(self):
-        if self.id in _payments:
-            del _payments[self.id]
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    amount = db.Column(db.Numeric(10, 2), nullable=False)
+    description = db.Column(db.String(200))
+    due_date = db.Column(db.Date)
+    status = db.Column(db.String(20), default='pending')  # pending, paid, overdue
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def mark_paid(self):
         self.status = 'paid'
-        self.paid_date = datetime.now()
-        self.save()
-    
-    @property
-    def patient(self):
-        return User.get(self.patient_id)
-    
-    @staticmethod
-    def get(payment_id):
-        return _payments.get(payment_id)
-    
-    @staticmethod
-    def get_all():
-        return list(_payments.values())
+        db.session.commit()
     
     @staticmethod
     def get_by_patient(patient_id):
-        return [payment for payment in _payments.values() if payment.patient_id == patient_id]
+        return Payment.query.filter_by(patient_id=patient_id).all()
 
-class FileUpload:
-    def __init__(self, patient_id, filename, file_type='document'):
-        global _file_upload_id_counter
-        self.id = _file_upload_id_counter
-        _file_upload_id_counter += 1
-        self.patient_id = patient_id
-        self.filename = filename
-        self.file_type = file_type  # document, xray, photo
-        self.url = f'/uploads/{filename}'
-        self.created_at = datetime.now()
+class FileUpload(db.Model):
+    __tablename__ = 'file_uploads'
     
-    def save(self):
-        _file_uploads[self.id] = self
-        return self
-    
-    def delete(self):
-        if self.id in _file_uploads:
-            del _file_uploads[self.id]
-    
-    @property
-    def patient(self):
-        return User.get(self.patient_id)
-    
-    @staticmethod
-    def get(file_id):
-        return _file_uploads.get(file_id)
-    
-    @staticmethod
-    def get_all():
-        return list(_file_uploads.values())
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    filename = db.Column(db.String(255), nullable=False)
+    file_type = db.Column(db.String(50), default='document')  # document, xray, photo
+    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     @staticmethod
     def get_by_patient(patient_id):
-        return [file for file in _file_uploads.values() if file.patient_id == patient_id]
+        return FileUpload.query.filter_by(patient_id=patient_id).all()
