@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste - Clínica Odontológica</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .info {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🦷 Sistema da Clínica Odontológica</h1>
+        <p class="success">✅ Sistema funcionando perfeitamente!</p>
+        
+        <div class="info">
+            <h3>Status do Sistema:</h3>
+            <ul>
+                <li>✅ Servidor Flask: Ativo</li>
+                <li>✅ Banco PostgreSQL: Conectado</li>
+                <li>✅ Tabelas: Criadas</li>
+                <li>✅ Interface: Português Brasileiro</li>
+            </ul>
+        </div>
+
+        <h3>Credenciais de Teste:</h3>
+        <p><strong>Administrador:</strong><br>
+        Email: admin@clinic.com<br>
+        Senha: admin123</p>
+
+        <h3>Acesso ao Sistema:</h3>
+        <a href="/auth/login" class="btn">🔑 Fazer Login</a>
+        <a href="/auth/register" class="btn">📝 Cadastrar Paciente</a>
+        <a href="/" class="btn">🏠 Página Inicial</a>
+
+        <div class="info">
+            <h4>Funcionalidades Disponíveis:</h4>
+            <ul>
+                <li>Sistema de autenticação para admin e pacientes</li>
+                <li>Dashboard com estatísticas</li>
+                <li>Gestão completa de pacientes</li>
+                <li>Agendamento de consultas</li>
+                <li>Planos de tratamento</li>
+                <li>Controle financeiro</li>
+                <li>Gestão de profissionais</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

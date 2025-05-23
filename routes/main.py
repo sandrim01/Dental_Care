@@ -13,3 +13,7 @@ def about():
 @main_bp.route('/contact')
 def contact():
     return render_template('index.html')
+
+@main_bp.route('/test')
+def test():
+    return render_template('test.html')
