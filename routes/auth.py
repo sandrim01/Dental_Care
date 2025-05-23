@@ -14,23 +14,26 @@ def login():
         else:
             return redirect(url_for('patient.dashboard'))
     
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
-        if user and user.check_password(form.password.data):
-            login_user(user)
-            flash('Login realizado com sucesso!', 'success')
-            next_page = request.args.get('next')
-            if next_page:
-                return redirect(next_page)
-            elif user.role == 'admin':
-                return redirect(url_for('admin.dashboard'))
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        if email and password:
+            user = User.query.filter_by(email=email).first()
+            if user and user.check_password(password):
+                login_user(user)
+                flash('Login realizado com sucesso!', 'success')
+                if user.role == 'admin':
+                    return redirect(url_for('admin.dashboard'))
+                else:
+                    return redirect(url_for('patient.dashboard'))
             else:
-                return redirect(url_for('patient.dashboard'))
+                flash('Email ou senha inválidos.', 'error')
         else:
-            flash('Email ou senha inválidos.', 'error')
+            flash('Por favor, preencha todos os campos.', 'error')
     
-    return render_template('auth/login.html', form=form)
+    form = LoginForm()
+    return render_template('auth/simple_login.html', form=form)
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
