@@ -11,28 +11,28 @@ admin_bp = Blueprint('admin', __name__)
 @admin_required
 def dashboard():
     stats = get_dashboard_stats()
-    recent_appointments = sorted(Appointment.get_all(), key=lambda x: x.created_at, reverse=True)[:10]
+    recent_appointments = Appointment.query.order_by(Appointment.created_at.desc()).limit(10).all()
     return render_template('admin/dashboard.html', stats=stats, recent_appointments=recent_appointments)
 
 @admin_bp.route('/patients')
 @login_required
 @admin_required
 def patients():
-    patients = User.get_patients()
+    patients = User.query.filter_by(role='patient').all()
     return render_template('admin/patients.html', patients=patients)
 
 @admin_bp.route('/patient/<int:patient_id>')
 @login_required
 @admin_required
 def patient_detail(patient_id):
-    patient = User.get(patient_id)
+    patient = User.query.get(patient_id)
     if not patient or patient.role != 'patient':
-        flash('Patient not found.', 'error')
+        flash('Paciente não encontrado.', 'error')
         return redirect(url_for('admin.patients'))
     
-    appointments = Appointment.get_by_patient(patient_id)
-    treatment_plans = TreatmentPlan.get_by_patient(patient_id)
-    payments = Payment.get_by_patient(patient_id)
+    appointments = Appointment.query.filter_by(patient_id=patient_id).all()
+    treatment_plans = TreatmentPlan.query.filter_by(patient_id=patient_id).all()
+    payments = Payment.query.filter_by(patient_id=patient_id).all()
     
     return render_template('admin/patient_detail.html',
                          patient=patient,

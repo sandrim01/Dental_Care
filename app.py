@@ -46,7 +46,7 @@ def load_user(user_id):
 from routes.main import main_bp
 from routes.auth import auth_bp
 from routes.patient import patient_bp
-from routes.admin import admin_bp
+from routes.admin_simple import admin_bp
 
 app.register_blueprint(main_bp)
 app.register_blueprint(auth_bp, url_prefix='/auth')

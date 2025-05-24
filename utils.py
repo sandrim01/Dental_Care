@@ -30,10 +30,10 @@ def get_dashboard_stats():
     from datetime import date
     
     stats = {
-        'total_patients': len(User.get_patients()),
-        'todays_appointments': len(Appointment.get_today()),
-        'total_appointments': len(Appointment.get_all()),
-        'pending_payments': len([p for p in Payment.get_all() if p.status == 'pending']),
-        'total_revenue': sum(p.amount for p in Payment.get_all() if p.status == 'paid')
+        'total_patients': User.query.filter_by(role='patient').count(),
+        'todays_appointments': Appointment.query.filter_by(date=date.today()).count(),
+        'total_appointments': Appointment.query.count(),
+        'pending_payments': Payment.query.filter_by(status='pending').count(),
+        'total_revenue': sum(p.amount for p in Payment.query.filter_by(status='paid').all())
     }
     return stats
