@@ -42,3 +42,36 @@ def appointments():
 def professionals():
     professionals = Professional.query.all()
     return render_template('admin/professionals.html', professionals=professionals)
+
+@admin_bp.route('/treatment_plans')
+@login_required
+@admin_required
+def treatment_plans():
+    treatment_plans = TreatmentPlan.query.all()
+    return render_template('admin/treatment_plans.html', treatment_plans=treatment_plans)
+
+@admin_bp.route('/payments')
+@login_required
+@admin_required
+def payments():
+    payments = Payment.query.all()
+    return render_template('admin/payments.html', payments=payments)
+
+@admin_bp.route('/patient/<int:patient_id>')
+@login_required
+@admin_required
+def patient_detail(patient_id):
+    patient = User.query.get(patient_id)
+    if not patient or patient.role != 'patient':
+        flash('Paciente não encontrado.', 'error')
+        return redirect(url_for('admin.patients'))
+    
+    appointments = Appointment.query.filter_by(patient_id=patient_id).all()
+    treatment_plans = TreatmentPlan.query.filter_by(patient_id=patient_id).all()
+    payments = Payment.query.filter_by(patient_id=patient_id).all()
+    
+    return render_template('admin/patient_detail.html',
+                         patient=patient,
+                         appointments=appointments,
+                         treatment_plans=treatment_plans,
+                         payments=payments)
